@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Liên Kết</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- CHỈ THÊM CSS MÀU TRẠNG THÁI -->
+    <style>
+        #statusResult {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        #statusResult.success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        #statusResult.error {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <h1>DANH SÁCH LIÊN KẾT</h1>
+
+<div class="ip-container">
+    <button id="rotateBtn">Check / Add IP</button>
+    <span id="ipDisplay">Đang lấy IP...</span>
+    <span id="statusResult"></span>
+</div>
+
+<div id="weblist"></div>
+
+<script>
+const ipDisplay = document.getElementById("ipDisplay");
+const statusResult = document.getElementById("statusResult");
+const weblist = document.getElementById("weblist");
+
+const websites = [
+    
+];
+
+// Hiển thị website
+websites.forEach(w => {
+    const div = document.createElement("div");
+    div.className = "webcard";
+    div.innerHTML = `<a href="${w.link}" target="_blank">${w.noidung}</a>`;
+    weblist.appendChild(div);
+});
+
+async function autoAddIP(force=false) {
+    if (!force && localStorage.getItem('ipResult')) {
+        const stored = JSON.parse(localStorage.getItem('ipResult'));
+        ipDisplay.textContent = stored.ip;
+        statusResult.textContent = stored.statusText;
+        statusResult.className = stored.className;
+        return;
+    }
+
+    ipDisplay.textContent = "Đang lấy IP...";
+    statusResult.textContent = "";
+    statusResult.className = "";
+
+    try {
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        const { ip } = await ipRes.json();
+        ipDisplay.textContent = ip;
+
+        const apiRes = await fetch(`https://bet.smsbet.top/add_ip.php?ip=${ip}`);
+        const text = await apiRes.text();
+
+        let displayText = "";
+        let className = "";
+
+        let json;
+        try { json = JSON.parse(text); } catch(e){}
+
+        if (json && json.status && json.message) {
+            displayText = json.message;
+            className = "success";
+        } else {
+            displayText = "IP đểu – vui lòng xoay proxy";
+            className = "error";
+        }
+
+        statusResult.textContent = displayText;
+        statusResult.className = className;
+
+        localStorage.setItem('ipResult', JSON.stringify({
+            ip, statusText: displayText, className
+        }));
+
+    } catch(err) {
+        statusResult.textContent = "Lỗi: "+err;
+        statusResult.className = "error";
+        ipDisplay.textContent = "-";
+        localStorage.setItem('ipResult', JSON.stringify({
+            ip:"-", statusText:"Lỗi: "+err, className:"error"
+        }));
+    }
+}
+
+// Chạy lần đầu
+autoAddIP();
+
+// Nút Xoay/Check IP
+document.getElementById("rotateBtn").addEventListener("click", () => {
+    localStorage.removeItem('ipResult');
+    autoAddIP(true);
+});
+</script>
+
+</body>
+</html>
+
+<div id="buttons-container">
+            <div class="skeleton-loading">
+                <p>Đang tải dữ liệu...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+        integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
+        crossorigin="anonymous">
+    </script>
+</body>
+</html>
